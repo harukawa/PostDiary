@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         fun getAppPreferences(ctx : Context) = ctx.getSharedPreferences("prefs", Context.MODE_PRIVATE)
 
         fun getPreFileNameFromPreferences(prefs: SharedPreferences): String {
-            return prefs.getString("pre_fileName", "")
+            return prefs.getString("pre_fileName", "")!!
         }
     }
     val prefs : SharedPreferences by lazy {getAppPreferences(this) }
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_sent -> {
-            var fileName = ""
+            val fileName : String
             if(isPrefile) {
                 fileName = pre_fileName
             } else {

@@ -18,7 +18,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".GithubPostBaseActivity">
+        <activity android:name=".GithubPostActivity">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="application/x-ipynb+json"/>

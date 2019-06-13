@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.util.Base64
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -31,7 +32,7 @@ class GithubPostActivity : AppCompatActivity() , CoroutineScope {
         fun getAppPreferences(ctx : Context) = ctx.getSharedPreferences("prefs", Context.MODE_PRIVATE)
 
         fun getAccessTokenFromPreferences(prefs: SharedPreferences): String {
-            return prefs.getString("access_token", "")
+            return prefs.getString("access_token", "")!!
         }
     }
 
@@ -63,9 +64,9 @@ class GithubPostActivity : AppCompatActivity() , CoroutineScope {
         fileName = fname
 
         webView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                if(url?.startsWith(getString(R.string.redirect_uri)) == true) {
-                    val code = Uri.parse(url).getQueryParameter("code")
+            override fun shouldOverrideUrlLoading(view: WebView?, url: WebResourceRequest): Boolean {
+                if(url.toString().startsWith(getString(R.string.redirect_uri)) == true) {
+                    val code = Uri.parse(url.toString()).getQueryParameter("code")
                     code?.let {
                         getAccessToken(code)
                         return true
@@ -108,11 +109,11 @@ class GithubPostActivity : AppCompatActivity() , CoroutineScope {
             "https://github.com/login/oauth/access_token?client_id=${getString(R.string.client_id)}&client_secret=${getString(R.string.client_secret)}&code=$code"
 
         launch {
-            val (request, response, result) = url.httpGet()
+            val (_, _, result) = url.httpGet()
                 .header("Accept" to "application/json")
                 .awaitResponseResult(AuthenticationJson.Deserializer(), Dispatchers.IO)
 
-            val (authjson, error) = result
+            val (authjson, _) = result
 
             authjson?.let {
                 prefs.edit()
@@ -126,7 +127,7 @@ class GithubPostActivity : AppCompatActivity() , CoroutineScope {
 
     fun checkTokenValidity(accessToken: String){
         launch {
-            val  (_, response, result) =
+            val  (_, response, _) =
                 apiUrlForCheckTokenValidity.httpGet()
                     .header("Authorization" to "token ${accessToken}")
                     .awaitStringResponseResult(scope=Dispatchers.IO)
@@ -208,7 +209,7 @@ class GithubPostActivity : AppCompatActivity() , CoroutineScope {
     }
 
     suspend fun putContent(apiUrl: String, branchName: String, fname: String, base64Content: String) : Response {
-        val (request, response, result) = "$apiUrl?ref=$branchName".httpGet()
+        val (_, _, result) = "$apiUrl?ref=$branchName".httpGet()
             .header("Authorization" to "token ${accessToken}")
             .awaitResponseResult(Content.Deserializer(), Dispatchers.IO)
 
