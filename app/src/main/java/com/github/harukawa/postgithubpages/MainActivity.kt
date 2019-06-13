@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
             saveFile(sentFile.fileName, sentFile.text)
             prefs.edit().putString("pre_fileName",sentFile.fileName).commit()
 
-            val intent = Intent(this, GithubPostBaseActivity::class.java)
+            val intent = Intent(this, GithubPostActivity::class.java)
             intent.putExtra("FILENAME",sentFile.fileName)
             startActivity(intent)
             true

@@ -22,7 +22,7 @@ import kotlinx.coroutines.*
 import java.io.StringWriter
 import kotlin.coroutines.CoroutineContext
 
-class GithubPostBaseActivity : AppCompatActivity() , CoroutineScope {
+class GithubPostActivity : AppCompatActivity() , CoroutineScope {
     lateinit var job: Job
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
