@@ -43,12 +43,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_sent -> {
-            val fileName : String
-            if(isPrefile) {
-                fileName = pre_fileName
-            } else {
-                fileName = getCurrentTime() + ".md"
-            }
+            val fileName = if(isPrefile) pre_fileName else getCurrentTime() + ".md"
             isPrefile = false
             val sentFile :mdFile = mdFile(fileName, editText.text.toString())
             saveFile(sentFile.fileName, sentFile.text)

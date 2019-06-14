@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.util.Base64
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -64,9 +63,9 @@ class GithubPostActivity : AppCompatActivity() , CoroutineScope {
         fileName = fname
 
         webView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView?, url: WebResourceRequest): Boolean {
-                if(url.toString().startsWith(getString(R.string.redirect_uri)) == true) {
-                    val code = Uri.parse(url.toString()).getQueryParameter("code")
+            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                if(url?.startsWith(getString(R.string.redirect_uri)) == true) {
+                    val code = Uri.parse(url).getQueryParameter("code")
                     code?.let {
                         getAccessToken(code)
                         return true
