@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
     }
     fun getCurrentTime(): String {
         val date = Date()
-        val format = SimpleDateFormat("yyyy-MM-ddhhmm")
+        val format = SimpleDateFormat("yyyy-MM-dd-hhmm")
         return format.format(date)
     }
 
