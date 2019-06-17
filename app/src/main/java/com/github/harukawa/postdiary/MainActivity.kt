@@ -1,4 +1,4 @@
-package com.github.harukawa.postgithubpages
+package com.github.harukawa.postdiary
 
 import android.content.Context
 import android.content.Intent

@@ -1,4 +1,4 @@
-package com.github.harukawa.postgithubpages
+package com.github.harukawa.postdiary
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
