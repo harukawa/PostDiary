@@ -5,7 +5,4 @@
     <string name="action_setting">設定</string>
     <string name="user_name_setting">ユーザー名</string>
     <string name="repo_name_setting">リポジトリ名</string>
-    <string name="client_id_setting">client_id</string>
-    <string name="client_secret_setting">client_sercret</string>
-    <string name="redirect_uri_setting">redirect_uri</string>
 </resources>
