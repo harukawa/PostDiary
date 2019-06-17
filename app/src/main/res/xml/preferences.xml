@@ -3,6 +3,22 @@
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <EditTextPreference
+            app:key="@string/client_id"
+            app:defaultValue="@string/client_id"
+            app:title="@string/client_id_setting"/>
+    <EditTextPreference
+            app:key="@string/client_secret"
+            app:defaultValue="@string/client_secret"
+            app:title="@string/client_secret_setting"/>
+    <EditTextPreference
+        app:key="@string/redirect_uri"
+        app:defaultValue="@string/redirect_uri"
+        app:title="@string/redirect_uri_setting"/>
+    <EditTextPreference
+            app:key="@string/user_name"
+            app:defaultValue="@string/user_name"
+            app:title="@string/user_name_setting"/>
+    <EditTextPreference
             app:key="@string/repo_name"
             app:defaultValue="@string/repo_name"
             app:title="@string/repo_name_setting"/>
