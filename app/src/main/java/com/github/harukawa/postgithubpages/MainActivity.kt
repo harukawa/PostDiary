@@ -61,12 +61,14 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("FILENAME",sentFile.fileName)
             startActivity(intent)
             editText.setText(preText)
+            supportActionBar?.title = getString(R.string.new_title)
             true
         }
         R.id.action_edit -> {
             val fileName = pre_fileName
             val text = loadFile(fileName)
             editText.setText(text)
+            supportActionBar?.title = fileName
             isPrefile = true
             true
         }
@@ -85,6 +87,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         editText.setText(preText)
+        supportActionBar?.title = getString(R.string.new_title)
     }
 
     fun getTextDate() : String {
