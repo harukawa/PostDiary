@@ -16,6 +16,14 @@ import java.util.ArrayList as ArrayList
 
 class MainActivity : AppCompatActivity() {
 
+    val preText = """
+            |---
+            |title: ""
+            |date: ${getTextDate()}
+            |---
+            |
+        """.trimMargin()
+
     data class mdFile(val fileName:String, val text: String)
 
     companion object {
@@ -52,6 +60,7 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, GithubPostActivity::class.java)
             intent.putExtra("FILENAME",sentFile.fileName)
             startActivity(intent)
+            editText.setText(preText)
             true
         }
         R.id.action_edit -> {
@@ -75,13 +84,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val preText = """
-            |---
-            |title: ""
-            |date: ${getTextDate()}
-            |---
-            |
-        """.trimMargin()
         editText.setText(preText)
     }
 
