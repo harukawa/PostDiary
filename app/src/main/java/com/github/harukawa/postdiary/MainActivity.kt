@@ -33,11 +33,18 @@ class MainActivity : AppCompatActivity() {
         fun getPreFileNameFromPreferences(prefs: SharedPreferences): String {
             return prefs.getString("pre_fileName", "")!!
         }
+
+        fun getTextFromPreferences(prefs: SharedPreferences): String {
+            return prefs.getString("temporary_text", "")!!
+        }
     }
     val prefs : SharedPreferences by lazy {getAppPreferences(this) }
 
     val pre_fileName : String
         get() = getPreFileNameFromPreferences(prefs)
+
+    val temporaryText : String
+        get() = getTextFromPreferences(prefs)
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         getMenuInflater().inflate(R.menu.main_menu, menu);
@@ -63,6 +70,10 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, GithubPostActivity::class.java)
             intent.putExtra("FILENAME",sentFile.fileName)
             startActivityForResult(intent, successSend)
+            true
+        }
+        R.id.action_save -> {
+            prefs.edit().putString("temporary_text", editText.text.toString()).commit()
             true
         }
         R.id.action_edit -> {
@@ -100,7 +111,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        editText.setText(preText)
+        if(temporaryText == "") {
+            editText.setText(preText)
+        } else {
+            editText.setText(temporaryText)
+            prefs.edit().remove("temporary_text")
+        }
         supportActionBar?.title = getString(R.string.new_title)
     }
 
@@ -124,7 +140,6 @@ class MainActivity : AppCompatActivity() {
     fun loadFile(fileName: String): String {
         var data:String = ""
         try {
-
             val fis = openFileInput(fileName)
             val reader = fis.bufferedReader()
             for (lineBuffer in reader.readLines()) {
