@@ -1,5 +1,6 @@
 package com.github.harukawa.postdiary
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -49,6 +50,8 @@ class MainActivity : AppCompatActivity() {
 
     var isPrefile:Boolean = false
 
+    val successSend = 100 // request Code
+
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_sent -> {
             val fileName = if(isPrefile) pre_fileName else getCurrentTime() + ".md"
@@ -59,9 +62,7 @@ class MainActivity : AppCompatActivity() {
 
             val intent = Intent(this, GithubPostActivity::class.java)
             intent.putExtra("FILENAME",sentFile.fileName)
-            startActivity(intent)
-            editText.setText(preText)
-            supportActionBar?.title = getString(R.string.new_title)
+            startActivityForResult(intent, successSend)
             true
         }
         R.id.action_edit -> {
@@ -79,6 +80,19 @@ class MainActivity : AppCompatActivity() {
         }
         else -> {
             super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == successSend) {
+            if (resultCode == Activity.RESULT_OK) {
+                val sendSuccess = data?.getIntExtra("SEND_SUCCESS", 0)
+                if(sendSuccess == 1) {
+                    editText.setText(preText)
+                    supportActionBar?.title = getString(R.string.new_title)
+                }
+            }
         }
     }
 

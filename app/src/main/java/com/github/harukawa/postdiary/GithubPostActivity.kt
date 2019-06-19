@@ -1,6 +1,8 @@
 package com.github.harukawa.postdiary
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
@@ -203,6 +205,15 @@ class GithubPostActivity : AppCompatActivity() , CoroutineScope {
                 else -> "Fail to post. ${resp.statusCode}"
             }
             showMessage(msg)
+
+            val sendCode: Int = when(resp.statusCode) {
+                200, 201 -> 1
+                else -> 0
+            }
+            val intent: Intent = Intent()
+            intent.putExtra("SEND_SUCCESS", sendCode)
+            setResult(Activity.RESULT_OK,intent)
+
             finish()
         }
     }
