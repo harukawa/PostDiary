@@ -9,6 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -74,6 +75,8 @@ class MainActivity : AppCompatActivity() {
         }
         R.id.action_save -> {
             prefs.edit().putString("temporary_text", editText.text.toString()).commit()
+            val text = "Save Text"
+            Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
             true
         }
         R.id.action_edit -> {
