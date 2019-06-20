@@ -79,6 +79,16 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
             true
         }
+        R.id.action_load -> {
+            if(temporaryText == "") {
+                val text = "No Save"
+                Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+            } else {
+                editText.setText(temporaryText)
+                prefs.edit().remove("temporary_text")
+            }
+            true
+        }
         R.id.action_edit -> {
             val fileName = pre_fileName
             val text = loadFile(fileName)
@@ -114,12 +124,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if(temporaryText == "") {
-            editText.setText(preText)
-        } else {
-            editText.setText(temporaryText)
-            prefs.edit().remove("temporary_text")
-        }
+        editText.setText(preText)
         supportActionBar?.title = getString(R.string.new_title)
     }
 

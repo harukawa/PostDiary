@@ -2,6 +2,7 @@
     <string name="app_name">PostDiary</string>
     <string name="sent">送信</string>
     <string name="action_save">保存</string>
+    <string name="action_load">読込</string>
     <string name="action_edit">編集</string>
     <string name="action_setting">設定</string>
     <string name="new_title">新規</string>
