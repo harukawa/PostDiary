@@ -11,12 +11,13 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.DialogFragment
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.ArrayList as ArrayList
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogListener {
 
     val preText = """
             |---
@@ -79,16 +80,6 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
             true
         }
-        R.id.action_load -> {
-            if(temporaryText == "") {
-                val text = "No Save"
-                Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
-            } else {
-                editText.setText(temporaryText)
-                prefs.edit().remove("temporary_text")
-            }
-            true
-        }
         R.id.action_edit -> {
             val fileName = pre_fileName
             val text = loadFile(fileName)
@@ -120,12 +111,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Fragment.onAttach() in LoadTextDialogFragment callback
+    override fun onDialogPositiveClick(dialog: DialogFragment) {
+        editText.setText(temporaryText)
+        prefs.edit().remove("temporary_text").commit()
+    }
+
+    // Fragment.onAttach() in LoadTextDialogFragment callback
+    override fun onDialogNegativeClick(dialog: DialogFragment) {
+        editText.setText(preText)
+        prefs.edit().remove("temporary_text").commit()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        editText.setText(preText)
         supportActionBar?.title = getString(R.string.new_title)
+        if(prefs.contains("temporary_text")) {
+            val newFragment = LoadTextDialogFragment()
+            newFragment.show(supportFragmentManager, "LoadTextDialogFragment")
+        } else {
+            editText.setText(preText)
+        }
     }
 
     fun getTextDate() : String {

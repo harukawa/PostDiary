@@ -2,10 +2,12 @@
     <string name="app_name">PostDiary</string>
     <string name="sent">送信</string>
     <string name="action_save">保存</string>
-    <string name="action_load">読込</string>
     <string name="action_edit">編集</string>
     <string name="action_setting">設定</string>
     <string name="new_title">新規</string>
     <string name="user_name_setting">ユーザー名</string>
     <string name="repo_name_setting">リポジトリ名</string>
+    <string name="dialog_message">前回保存したテキストの編集を再開しますか?</string>
+    <string name="yes">はい</string>
+    <string name="no">いいえ</string>
 </resources>
