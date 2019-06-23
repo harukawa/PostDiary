@@ -5,18 +5,20 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Base64
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.DialogFragment
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.ArrayList as ArrayList
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogListener {
 
     val preText = """
             |---
@@ -25,6 +27,8 @@ class MainActivity : AppCompatActivity() {
             |---
             |
         """.trimMargin()
+
+    fun showMessage(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
 
     data class mdFile(val fileName:String, val text: String)
 
@@ -68,25 +72,31 @@ class MainActivity : AppCompatActivity() {
             saveFile(sentFile.fileName, sentFile.text)
             prefs.edit().putString("pre_fileName",sentFile.fileName).commit()
 
-            val intent = Intent(this, GithubPostActivity::class.java)
-            intent.putExtra("FILENAME",sentFile.fileName)
-            startActivityForResult(intent, successSend)
+            // push text to github
+            if(prefs.contains("access_token")) {
+                postText(fileName)
+            } else {
+                val intent = Intent(this, GithubPostActivity::class.java)
+                intent.putExtra("FILENAME",sentFile.fileName)
+                startActivityForResult(intent, successSend)
+            }
+
+            // if success push, editText and title clean
+            val success_post = prefs.getInt("success_post", 0)
+            if(success_post == 2) {
+                showMessage("Success Post")
+                editText.setText(preText)
+                supportActionBar?.title = getString(R.string.new_title)
+            } else {
+                showMessage("Faile Post")
+            }
+            prefs.edit().remove("success_post").commit()
             true
         }
+        // temporary save
         R.id.action_save -> {
             prefs.edit().putString("temporary_text", editText.text.toString()).commit()
-            val text = "Save Text"
-            Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
-            true
-        }
-        R.id.action_load -> {
-            if(temporaryText == "") {
-                val text = "No Save"
-                Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
-            } else {
-                editText.setText(temporaryText)
-                prefs.edit().remove("temporary_text")
-            }
+            showMessage("Save Text")
             true
         }
         R.id.action_edit -> {
@@ -107,6 +117,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Fragment.onAttach() in LoadTextDialogFragment callback
+    override fun onDialogPositiveClick(dialog: DialogFragment) {
+        editText.setText(temporaryText)
+        prefs.edit().remove("temporary_text").commit()
+    }
+
+    // Fragment.onAttach() in LoadTextDialogFragment callback
+    override fun onDialogNegativeClick(dialog: DialogFragment) {
+        editText.setText(preText)
+        prefs.edit().remove("temporary_text").commit()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        supportActionBar?.title = getString(R.string.new_title)
+        if(prefs.contains("temporary_text")) {
+            val newFragment = LoadTextDialogFragment()
+            newFragment.show(supportFragmentManager, "LoadTextDialogFragment")
+        } else {
+            editText.setText(preText)
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == successSend) {
@@ -118,14 +152,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        editText.setText(preText)
-        supportActionBar?.title = getString(R.string.new_title)
     }
 
     fun getTextDate() : String {
@@ -159,6 +185,28 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         }
         return data
+    }
+
+    fun postText(fileName: String) {
+        try {
+            val apiUrl = "https://api.github.com/repos/${getString(R.string.user_name)}/${getString(R.string.repo_name)}/contents/_posts/${fileName}"
+            val base64Content = readBase64(fileName)
+            val ContentSender = ContentSender(this)
+            val accessToken = prefs.getString("access_token","")!!
+            ContentSender.putContent(apiUrl, "master", fileName, base64Content, accessToken)
+
+        }catch(e: IllegalArgumentException){
+            showMessage("Invalid file. ${e.message}")
+        }
+    }
+
+    fun readBase64(fileUri : String) : String {
+        val inputStream = openFileInput(fileUri)
+        try {
+            return Base64.encodeToString(inputStream.readBytes(), Base64.DEFAULT)
+        } finally {
+            inputStream.close()
+        }
     }
 
 }
