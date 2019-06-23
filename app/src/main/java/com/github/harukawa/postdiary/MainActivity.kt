@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Base64
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
@@ -26,6 +27,8 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
             |---
             |
         """.trimMargin()
+
+    fun showMessage(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
 
     data class mdFile(val fileName:String, val text: String)
 
@@ -69,15 +72,31 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
             saveFile(sentFile.fileName, sentFile.text)
             prefs.edit().putString("pre_fileName",sentFile.fileName).commit()
 
-            val intent = Intent(this, GithubPostActivity::class.java)
-            intent.putExtra("FILENAME",sentFile.fileName)
-            startActivityForResult(intent, successSend)
+            // push text to github
+            if(prefs.contains("access_token")) {
+                postText(fileName)
+            } else {
+                val intent = Intent(this, GithubPostActivity::class.java)
+                intent.putExtra("FILENAME",sentFile.fileName)
+                startActivityForResult(intent, successSend)
+            }
+
+            // if success push, editText and title clean
+            val success_post = prefs.getInt("success_post", 0)
+            if(success_post == 2) {
+                showMessage("Success Post")
+                editText.setText(preText)
+                supportActionBar?.title = getString(R.string.new_title)
+            } else {
+                showMessage("Faile Post")
+            }
+            prefs.edit().remove("success_post").commit()
             true
         }
+        // temporary save
         R.id.action_save -> {
             prefs.edit().putString("temporary_text", editText.text.toString()).commit()
-            val text = "Save Text"
-            Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+            showMessage("Save Text")
             true
         }
         R.id.action_edit -> {
@@ -95,19 +114,6 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         }
         else -> {
             super.onOptionsItemSelected(item)
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == successSend) {
-            if (resultCode == Activity.RESULT_OK) {
-                val sendSuccess = data?.getIntExtra("SEND_SUCCESS", 0)
-                if(sendSuccess == 1) {
-                    editText.setText(preText)
-                    supportActionBar?.title = getString(R.string.new_title)
-                }
-            }
         }
     }
 
@@ -166,6 +172,28 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
             e.printStackTrace()
         }
         return data
+    }
+
+    fun postText(fileName: String) {
+        try {
+            val apiUrl = "https://api.github.com/repos/${getString(R.string.user_name)}/${getString(R.string.repo_name)}/contents/_posts/${fileName}"
+            val base64Content = readBase64(fileName)
+            val putContent = PutContent(this)
+            val accessToken = prefs.getString("access_token","")!!
+            putContent.putContentAndFinish(apiUrl, "master", fileName, base64Content, accessToken)
+
+        }catch(e: IllegalArgumentException){
+            showMessage("Invalid file. ${e.message}")
+        }
+    }
+
+    fun readBase64(fileUri : String) : String {
+        val inputStream = openFileInput(fileUri)
+        try {
+            return Base64.encodeToString(inputStream.readBytes(), Base64.DEFAULT)
+        } finally {
+            inputStream.close()
+        }
     }
 
 }
