@@ -16,7 +16,7 @@ import kotlinx.coroutines.*
 import java.io.StringWriter
 import kotlin.coroutines.CoroutineContext
 
-class PutContent(context: Context): CoroutineScope {
+class ContentSender(context: Context): CoroutineScope {
     lateinit var job: Job
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
@@ -43,10 +43,10 @@ class PutContent(context: Context): CoroutineScope {
         return sw.toString()
     }
 
-    fun putContentAndFinish(apiUrl: String, branchName: String, fname: String, base64Content: String, accessToken: String) {
+    fun putContent(apiUrl: String, branchName: String, fname: String, base64Content: String, accessToken: String) {
         job = Job()
         launch {
-            val resp = putContent(apiUrl, branchName, fname, base64Content, accessToken)
+            val resp = sendContent(apiUrl, branchName, fname, base64Content, accessToken)
 
             val sendCode: Int = when(resp.statusCode) {
                 200, 201 -> 2
@@ -56,7 +56,7 @@ class PutContent(context: Context): CoroutineScope {
         }
     }
 
-    suspend fun putContent(apiUrl: String, branchName: String, fname: String, base64Content: String, accessToken:String) : Response {
+    suspend fun sendContent(apiUrl: String, branchName: String, fname: String, base64Content: String, accessToken:String) : Response {
         val (_, _, result) = "$apiUrl?ref=$branchName".httpGet()
             .header("Authorization" to "token ${accessToken}")
             .awaitResponseResult(Content.Deserializer(), Dispatchers.IO)

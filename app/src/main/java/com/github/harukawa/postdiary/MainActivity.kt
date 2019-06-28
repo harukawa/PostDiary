@@ -141,6 +141,19 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == successSend) {
+            if (resultCode == Activity.RESULT_OK) {
+                val sendSuccess = data?.getIntExtra("SEND_SUCCESS", 0)
+                if(sendSuccess == 1) {
+                    editText.setText(preText)
+                    supportActionBar?.title = getString(R.string.new_title)
+                }
+            }
+        }
+    }
+
     fun getTextDate() : String {
         val date = Date()
         val format = SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
@@ -178,9 +191,9 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         try {
             val apiUrl = "https://api.github.com/repos/${getString(R.string.user_name)}/${getString(R.string.repo_name)}/contents/_posts/${fileName}"
             val base64Content = readBase64(fileName)
-            val putContent = PutContent(this)
+            val ContentSender = ContentSender(this)
             val accessToken = prefs.getString("access_token","")!!
-            putContent.putContentAndFinish(apiUrl, "master", fileName, base64Content, accessToken)
+            ContentSender.putContent(apiUrl, "master", fileName, base64Content, accessToken)
 
         }catch(e: IllegalArgumentException){
             showMessage("Invalid file. ${e.message}")
