@@ -13,12 +13,21 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 import java.util.ArrayList as ArrayList
 
-class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogListener {
+class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogListener, CoroutineScope {
+
+    lateinit var job: Job
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
     val preText = """
             |---
@@ -62,7 +71,7 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
 
     var isPrefile:Boolean = false
 
-    val successSend = 100 // request Code
+    val successGetToken = 100 // request Code
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_sent -> {
@@ -72,25 +81,14 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
             saveFile(sentFile.fileName, sentFile.text)
             prefs.edit().putString("pre_fileName",sentFile.fileName).commit()
 
-            // push text to github
-            if(prefs.contains("access_token")) {
-                postText(fileName)
+            val intent = Intent(this, GithubGetTokenActivity::class.java)
+            intent.putExtra("FILENAME", fileName)
+            if(!prefs.contains("access_token")) {
+                startActivityForResult(intent, successGetToken)
             } else {
-                val intent = Intent(this, GithubPostActivity::class.java)
-                intent.putExtra("FILENAME",sentFile.fileName)
-                startActivityForResult(intent, successSend)
+                // push text to github
+                postText(sentFile.fileName)
             }
-
-            // if success push, editText and title clean
-            val success_post = prefs.getInt("success_post", 0)
-            if(success_post == 2) {
-                showMessage("Success Post")
-                editText.setText(preText)
-                supportActionBar?.title = getString(R.string.new_title)
-            } else {
-                showMessage("Faile Post")
-            }
-            prefs.edit().remove("success_post").commit()
             true
         }
         // temporary save
@@ -143,12 +141,12 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == successSend) {
+        if (requestCode == successGetToken) {
             if (resultCode == Activity.RESULT_OK) {
-                val sendSuccess = data?.getIntExtra("SEND_SUCCESS", 0)
+                val sendSuccess = data?.getIntExtra("GET_TOKEN", 0)
                 if(sendSuccess == 1) {
-                    editText.setText(preText)
-                    supportActionBar?.title = getString(R.string.new_title)
+                    showMessage("Success Get Token")
+                    postText(pre_fileName)
                 }
             }
         }
@@ -188,15 +186,27 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
     }
 
     fun postText(fileName: String) {
-        try {
-            val apiUrl = "https://api.github.com/repos/${getString(R.string.user_name)}/${getString(R.string.repo_name)}/contents/_posts/${fileName}"
-            val base64Content = readBase64(fileName)
-            val ContentSender = ContentSender(this)
-            val accessToken = prefs.getString("access_token","")!!
-            ContentSender.putContent(apiUrl, "master", fileName, base64Content, accessToken)
+        job = Job()
+        launch {
+            try {
+                val apiUrl =
+                    "https://api.github.com/repos/${getString(R.string.user_name)}/${getString(R.string.repo_name)}/contents/_posts/${fileName}"
+                val base64Content = readBase64(fileName)
+                val ContentSender = ContentSender()
+                val accessToken = prefs.getString("access_token", "")!!
+                val successSend = ContentSender.putContent(apiUrl, "master", fileName, base64Content, accessToken)
 
-        }catch(e: IllegalArgumentException){
-            showMessage("Invalid file. ${e.message}")
+                if(successSend == 1) {
+                    editText.setText(preText)
+                    supportActionBar?.title = getString(R.string.new_title)
+                    showMessage("Success Send")
+                } else {
+                    showMessage("Faile Send")
+                }
+
+            } catch (e: IllegalArgumentException) {
+                showMessage("Invalid file. ${e.message}")
+            }
         }
     }
 

@@ -2,10 +2,10 @@ package com.github.harukawa.postdiary
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
-import android.util.Base64
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -19,7 +19,7 @@ import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
-class GithubPostActivity : AppCompatActivity() , CoroutineScope {
+class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
     lateinit var job: Job
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
@@ -38,8 +38,6 @@ class GithubPostActivity : AppCompatActivity() , CoroutineScope {
 
     val webView by lazy { findViewById(R.id.webview) as WebView }
 
-    var fileName = ""
-
     override fun onDestroy() {
         super.onDestroy()
         job.cancel()
@@ -55,9 +53,6 @@ class GithubPostActivity : AppCompatActivity() , CoroutineScope {
             blockNetworkImage = false
             loadsImagesAutomatically = true
         }
-
-        val fname = intent.getStringExtra("FILENAME")
-        fileName = fname
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
@@ -83,20 +78,6 @@ class GithubPostActivity : AppCompatActivity() , CoroutineScope {
                     "&scope=public_repo&redirect_uri=${getString(R.string.redirect_uri)}"
 
 
-    fun afterLogin(){
-        try {
-
-            val apiUrl = "https://api.github.com/repos/${getString(R.string.user_name)}/${getString(R.string.repo_name)}/contents/_posts/${fileName}"
-            val base64Content = readBase64(fileName)
-            val putContent = PutContent(this)
-            putContent.putContentAndFinish(apiUrl, "master", fileName, base64Content, accessToken)
-            finish()
-
-        }catch(e: IllegalArgumentException){
-            showMessage("Invalid file. ${e.message}")
-        }
-    }
-
     val apiUrlForCheckTokenValidity : String
         get() {
             return "https://api.github.com/repos/${getString(R.string.user_name)}/${getString(R.string.repo_name)}/contents/_posts/?ref=master"
@@ -117,50 +98,33 @@ class GithubPostActivity : AppCompatActivity() , CoroutineScope {
                 prefs.edit()
                     .putString("access_token", it.accessToken)
                     .commit()
-                afterLogin()
             }
-
+            checkTokenValidity(accessToken)
         }
     }
 
-    fun checkTokenValidity(accessToken: String){
-        launch {
-            val  (_, response, _) =
-                apiUrlForCheckTokenValidity.httpGet()
-                    .header("Authorization" to "token ${accessToken}")
-                    .awaitStringResponseResult(scope=Dispatchers.IO)
-            if(response.statusCode == 200) {
-                showMessage("success login")
-                afterLogin()
-            } else {
-                webView.loadUrl(authorizeUrl)
-                showMessage("not login ${response.statusCode}")
-            }
+    suspend fun checkTokenValidity(accessToken: String){
+        val  (_, response, _) =
+            apiUrlForCheckTokenValidity.httpGet()
+                .header("Authorization" to "token ${accessToken}")
+                .awaitStringResponseResult(scope=Dispatchers.IO)
+        if(response.statusCode == 200) {
+            val intent: Intent = Intent()
+            intent.putExtra("GET_TOKEN", 1)
+            setResult(Activity.RESULT_OK,intent)
+            finish()
+        } else {
+            webView.loadUrl(authorizeUrl)
+            showMessage("not login ${response.statusCode}")
         }
     }
 
     fun checkValidTokenAndGotoTopIfValid() {
-
         val accToken = accessToken
         if (accToken == "") {
             // not valid.
             webView.loadUrl(authorizeUrl)
             return
-        }
-
-        try {
-            checkTokenValidity(accToken)
-        }catch (e: IllegalArgumentException) {
-            showMessage("Invalid ipynb. ${e.message}")
-        }
-    }
-
-    fun readBase64(fileUri : String) : String {
-        val inputStream = openFileInput(fileUri)
-        try {
-            return Base64.encodeToString(inputStream.readBytes(), Base64.DEFAULT)
-        } finally {
-            inputStream.close()
         }
     }
 
