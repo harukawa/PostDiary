@@ -126,11 +126,6 @@ class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
             webView.loadUrl(authorizeUrl)
             return
         }
-        /*try {
-            checkTokenValidity(accToken)
-        }catch (e: IllegalArgumentException) {
-            showMessage("Invalid ipynb. ${e.message}")
-        }*/
     }
 
     data class AuthenticationJson(@SerializedName("access_token") val accessToken : String,
