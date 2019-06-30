@@ -3,10 +3,12 @@
     <item
             android:id="@+id/action_sent"
             android:title="@string/sent"
+            android:icon="@android:drawable/ic_menu_upload"
             app:showAsAction="always"/>
     <item
             android:id="@+id/action_save"
             android:title="@string/action_save"
+            android:icon="@android:drawable/ic_menu_save"
             app:showAsAction="always"/>
     <item
             android:id="@+id/action_load"
@@ -15,9 +17,11 @@
     <item
             android:id="@+id/action_edit"
             android:title="@string/action_edit"
+            android:icon="@android:drawable/ic_menu_edit"
             app:showAsAction="always"/>
     <item
             android:id="@+id/action_setting"
             android:title="@string/action_setting"
+            android:icon="@android:drawable/ic_menu_manage"
             app:showAsAction="always"/>
 </menu>
