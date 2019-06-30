@@ -16,12 +16,10 @@ import kotlinx.coroutines.*
 import java.io.StringWriter
 import kotlin.coroutines.CoroutineContext
 
-class ContentSender(context: Context): CoroutineScope {
+class ContentSender(): CoroutineScope {
     lateinit var job: Job
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
-
-    val prefs : SharedPreferences by lazy { getAppPreferences(context) }
 
     data class Content(val content : String, val sha : String) {
         class Deserializer : ResponseDeserializable<Content> {
@@ -43,23 +41,20 @@ class ContentSender(context: Context): CoroutineScope {
         return sw.toString()
     }
 
-    fun putContent(apiUrl: String, branchName: String, fname: String, base64Content: String, accessToken: String) {
-        job = Job()
-        launch {
-            val resp = sendContent(apiUrl, branchName, fname, base64Content, accessToken)
+    suspend fun putContent(apiUrl: String, branchName: String, fname: String, base64Content: String, accessToken: String) : Int {
+        val resp = sendContentToGithub(apiUrl, branchName, fname, base64Content, accessToken)
 
-            val sendCode: Int = when(resp.statusCode) {
-                200, 201 -> 2
-                else -> 1
-            }
-            prefs.edit().putInt("success_post",sendCode).commit()
+        val sendCode: Int = when(resp.statusCode) {
+            200, 201 -> 1
+            else -> 0
         }
+        return sendCode
     }
 
-    suspend fun sendContent(apiUrl: String, branchName: String, fname: String, base64Content: String, accessToken:String) : Response {
+    suspend fun sendContentToGithub(apiUrl: String, branchName: String, fname: String, base64Content: String, accessToken:String) : Response {
         val (_, _, result) = "$apiUrl?ref=$branchName".httpGet()
             .header("Authorization" to "token ${accessToken}")
-            .awaitResponseResult(Content.Deserializer(), Dispatchers.IO)
+            .awaitResponseResult(ContentSender.Content.Deserializer(), Dispatchers.IO)
 
         val contParam = arrayListOfContentParameter(branchName, fname, base64Content)
 
