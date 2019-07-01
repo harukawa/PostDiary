@@ -95,7 +95,6 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         R.id.action_save -> {
             prefs.edit().putString("temporary_text", editText.text.toString()).commit()
             showMessage("Save Text")
-            prefs.edit().remove("access_token").commit()
             true
         }
         R.id.action_edit -> {
