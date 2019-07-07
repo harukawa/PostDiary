@@ -98,10 +98,7 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
             true
         }
         R.id.action_edit -> {
-            val fileName = pre_fileName
-            val text = loadFile(fileName)
-            editText.setText(text)
-            supportActionBar?.title = fileName
+            loadFile(pre_fileName)
             isPrefile = true
             true
         }
@@ -131,11 +128,20 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         supportActionBar?.title = getString(R.string.new_title)
-        if(prefs.contains("temporary_text")) {
-            val newFragment = LoadTextDialogFragment()
-            newFragment.show(supportFragmentManager, "LoadTextDialogFragment")
+        val editFileName = intent.getStringExtra("EDIT_FILENAME")
+        val fileList = fileList()
+        val isFile = fileList.find { it == editFileName }
+
+        if(isFile != null){
+            loadFile(editFileName)
+            isPrefile = true
         } else {
-            editText.setText(preText)
+            if (prefs.contains("temporary_text")) {
+                val newFragment = LoadTextDialogFragment()
+                newFragment.show(supportFragmentManager, "LoadTextDialogFragment")
+            } else {
+                editText.setText(preText)
+            }
         }
     }
 
@@ -169,7 +175,7 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         }
     }
 
-    fun loadFile(fileName: String): String {
+    fun loadFile(fileName: String) {
         var data:String = ""
         try {
             val fis = openFileInput(fileName)
@@ -182,7 +188,8 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         } catch (e: IOException) {
             e.printStackTrace()
         }
-        return data
+        editText.setText(data)
+        supportActionBar?.title = fileName
     }
 
     fun postText(fileName: String) {
