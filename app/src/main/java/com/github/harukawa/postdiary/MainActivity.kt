@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.database.Cursor
 import android.os.Bundle
 import android.util.Base64
 import android.view.Menu
@@ -21,13 +22,14 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.coroutines.CoroutineContext
-import java.util.ArrayList as ArrayList
 
 class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogListener, CoroutineScope {
 
     lateinit var job: Job
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
+
+    val database by lazy { DatabaseHolder(this) }
 
     val preText = """
             |---
@@ -39,7 +41,8 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
 
     fun showMessage(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
 
-    data class mdFile(val fileName:String, val text: String)
+    var id : Int = -1
+    var prePostFileName : String = ""
 
     companion object {
         fun getAppPreferences(ctx : Context) = ctx.getSharedPreferences("prefs", Context.MODE_PRIVATE)
@@ -69,40 +72,53 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         findViewById<TextView>(R.id.editText) as EditText
     }
 
-    var isPrefile:Boolean = false
+    var isPost : Boolean = false
 
     val successGetToken = 100 // request Code
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_sent -> {
-            val fileName = if(isPrefile) pre_fileName else getCurrentTime() + ".md"
-            isPrefile = false
-            val sentFile :mdFile = mdFile(fileName, editText.text.toString())
-            saveFile(sentFile.fileName, sentFile.text)
-            prefs.edit().putString("pre_fileName",sentFile.fileName).commit()
+            val fileName = if(isEdit) pre_fileName else getCurrentTime() + ".md"
+            prefs.edit().putString("pre_fileName",fileName).commit()
 
-            val intent = Intent(this, GithubGetTokenActivity::class.java)
-            intent.putExtra("FILENAME", fileName)
             if(!prefs.contains("access_token")) {
+                val intent = Intent(this, GithubGetTokenActivity::class.java)
+                intent.putExtra("FILENAME", fileName)
                 startActivityForResult(intent, successGetToken)
             } else {
                 // push text to github
-                postText(sentFile.fileName)
+                postText(fileName)
             }
             true
         }
         // temporary save
         R.id.action_save -> {
             prefs.edit().putString("temporary_text", editText.text.toString()).commit()
+            val file = supportActionBar?.title.toString()
+            val title = parserTitle()
+            val body = editText.text.toString()
+            if(isEdit) {
+                if(isPost) {
+                    database.updateEntry(id,file,title,body,1)
+                } else {
+                    database.updateEntry(id, file, title, body,0)
+                }
+            } else {
+                database.insertEntry(file, title, body, 0)
+            }
             showMessage("Save Text")
             true
         }
         R.id.action_edit -> {
-            val fileName = pre_fileName
-            val text = loadFile(fileName)
-            editText.setText(text)
-            supportActionBar?.title = fileName
-            isPrefile = true
+            if(prefs.contains("pre_fileName")) {
+                val (file, body)  = database.getEntryFile(pre_fileName)
+                supportActionBar?.title = file
+                editText.setText(body)
+                showMessage("Load Pre Post Text")
+                isEdit = true
+            } else {
+                showMessage("No Text")
+            }
             true
         }
         R.id.action_setting -> {
@@ -127,15 +143,28 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         prefs.edit().remove("temporary_text").commit()
     }
 
+    var isEdit = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        supportActionBar?.title = getString(R.string.new_title)
-        if(prefs.contains("temporary_text")) {
-            val newFragment = LoadTextDialogFragment()
-            newFragment.show(supportFragmentManager, "LoadTextDialogFragment")
+        val editId = intent.getIntExtra("EDIT_ID", -1)
+        id = editId
+        val ispost = intent.getIntExtra("ISPOST",-1)
+        if(ispost == 1) {
+            val (file, body)  = database.getEntry(editId)
+            supportActionBar?.title = file
+            editText.setText(body)
+            isPost = true
+            isEdit = true
+        } else if(ispost == 0) {
+            val (file, body)  = database.getEntry(editId)
+            supportActionBar?.title = "新規"
+            editText.setText(body)
+            isEdit = true
         } else {
             editText.setText(preText)
+            supportActionBar?.title = "新規"
         }
     }
 
@@ -163,40 +192,25 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         return format.format(date)
     }
 
-    fun saveFile(fileName:String, text:String) {
-        openFileOutput(fileName, Context.MODE_PRIVATE).use {
-            it.write(text.toByteArray())
-        }
-    }
-
-    fun loadFile(fileName: String): String {
-        var data:String = ""
-        try {
-            val fis = openFileInput(fileName)
-            val reader = fis.bufferedReader()
-            for (lineBuffer in reader.readLines()) {
-                data = data + lineBuffer + "\n"
-            }
-            reader.close()
-            fis.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-        return data
-    }
-
     fun postText(fileName: String) {
         job = Job()
         launch {
             try {
                 val apiUrl =
                     "https://api.github.com/repos/${getString(R.string.user_name)}/${getString(R.string.repo_name)}/contents/_posts/${fileName}"
-                val base64Content = readBase64(fileName)
+                val base64Content = Base64.encodeToString(editText.text.toString().toByteArray(),Base64.DEFAULT)//readBase64(fileName)
                 val ContentSender = ContentSender()
                 val accessToken = prefs.getString("access_token", "")!!
                 val successSend = ContentSender.putContent(apiUrl, "master", fileName, base64Content, accessToken)
 
                 if(successSend == 1) {
+                    if(isEdit) {
+                        database.updateEntry(id, fileName, parserTitle(), editText.text.toString(),1)
+                        isEdit = false
+                    } else {
+                        database.insertEntry(fileName, parserTitle(), editText.text.toString(),1)
+                    }
+                    prePostFileName = fileName
                     editText.setText(preText)
                     supportActionBar?.title = getString(R.string.new_title)
                     showMessage("Success Send")
@@ -210,12 +224,19 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         }
     }
 
-    fun readBase64(fileUri : String) : String {
-        val inputStream = openFileInput(fileUri)
-        try {
-            return Base64.encodeToString(inputStream.readBytes(), Base64.DEFAULT)
-        } finally {
-            inputStream.close()
+    fun parserTitle() :String {
+        val text = editText.text.toString()
+        val titlePat = "title: \\\"([^\$]+)\\\"".toRegex()
+
+        var res = titlePat.find(text)
+        if(res == null) {
+            showMessage("No title")
+            return "No Title"
+        } else {
+            val titleLine = res.value
+            val title = titleLine.substring(8, titleLine.length - 1)
+
+            return title
         }
     }
 

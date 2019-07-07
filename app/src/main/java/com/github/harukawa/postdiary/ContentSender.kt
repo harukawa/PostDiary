@@ -1,9 +1,5 @@
 package com.github.harukawa.postdiary
 
-
-import android.content.Context
-import android.content.SharedPreferences
-import com.github.harukawa.postdiary.MainActivity.Companion.getAppPreferences
 import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.github.kittinunf.fuel.coroutines.awaitResponseResult
