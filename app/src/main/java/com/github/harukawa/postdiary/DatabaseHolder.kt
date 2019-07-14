@@ -140,16 +140,3 @@ fun DatabaseHolder.getEntryFile(fileName: String): Pair<String, String> {
         }
     }
 }
-
-fun DatabaseHolder.isFile(fileName: String): Pair<String, String> {
-    return query(DatabaseHolder.ENTRY_TABLE_NAME) {
-        where("FILE=?",fileName)
-    }.withClose{
-        moveToFirst()
-        if(isAfterLast()){
-            Pair("", "")
-        } else {
-            Pair(this.getString(1), this.getString(3))
-        }
-    }
-}

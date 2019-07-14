@@ -105,6 +105,7 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
                 }
             } else {
                 database.insertEntry(file, title, body, 0)
+                finish()
             }
             showMessage("Save Text")
             true
