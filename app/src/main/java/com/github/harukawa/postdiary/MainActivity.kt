@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         }
         // temporary save
         R.id.action_save -> {
-            val file = supportActionBar?.title.toString()
+            val file = getCurrentTime() + ".md"
             val title = parserTitle()
             val body = editText.text.toString()
             if(isEdit) {
@@ -97,7 +97,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                 }
             } else {
                 database.insertEntry(file, title, body, 0)
-                finish()
+                val saveId = database.getId(file)
+                // If the function fail to get the ID, return to the ListActivity
+                if(saveId == -1){
+                    finish()
+                } else {
+                    id = saveId
+                    isEdit = true
+                }
             }
             showMessage("Save Text")
             true
