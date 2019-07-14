@@ -1,6 +1,7 @@
 package com.github.harukawa.postdiary
 
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
@@ -10,7 +11,7 @@ import android.widget.ArrayAdapter
 import android.widget.ImageButton
 import android.widget.ListView
 import android.widget.TextView
-import androidx.fragment.app.DialogFragment
+import androidx.appcompat.app.AlertDialog
 
 class ListActivity : AppCompatActivity() {
 
@@ -135,9 +136,21 @@ class articleListAdapter : ArrayAdapter<Article> {
         viewHolder.title.text = Item!!.title
         viewHolder.deleteButton.setOnClickListener { _ ->
             // touch deleteButton
-            database.deleteEntries(Item.id)
-            this.remove(Item)
-            this.notifyDataSetChanged()
+            val dialog = AlertDialog.Builder(context)
+            dialog.setMessage(R.string.delete_message)
+                .setPositiveButton(R.string.yes,
+                    { _, _ ->
+                        database.deleteEntries(Item.id)
+                        this.remove(Item)
+                        this.notifyDataSetChanged()
+                    })
+                .setNegativeButton(R.string.no,
+                    { _, _ ->
+                        // User cancelled the dialog
+                    })
+            // Create the AlertDialog object and return it
+            dialog.create()
+            dialog.show()
         }
         return view!!
     }
