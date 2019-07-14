@@ -139,3 +139,16 @@ fun DatabaseHolder.getEntryFile(fileName: String): Pair<String, String> {
         }
     }
 }
+
+fun DatabaseHolder.getId(fileName: String): Int {
+    return query(DatabaseHolder.ENTRY_TABLE_NAME) {
+        where("FILE=?",fileName)
+    }.withClose{
+        moveToFirst()
+        if(isAfterLast()){
+            -1
+        } else {
+            this.getInt(0)
+        }
+    }
+}
