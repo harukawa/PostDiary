@@ -111,11 +111,15 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         }
         R.id.action_edit -> {
             if(prefs.contains("pre_fileName")) {
-                val (file, body)  = database.getEntryFile(pre_fileName)
-                supportActionBar?.title = file
-                editText.setText(body)
-                showMessage("Load Pre Post Text")
-                isEdit = true
+                val (file, body) = database.getEntryFile(pre_fileName)
+                if(file == ""){
+                    showMessage("No File")
+                } else {
+                    supportActionBar?.title = file
+                    editText.setText(body)
+                    showMessage("Load Pre Post Text")
+                    isEdit = true
+                }
             } else {
                 showMessage("No Text")
             }
