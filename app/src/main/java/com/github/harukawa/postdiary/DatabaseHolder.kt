@@ -6,7 +6,6 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import java.util.*
 
 class DatabaseHolder(val context: Context){
     companion object {
@@ -91,7 +90,7 @@ fun DatabaseHolder.query(tableName: String, body: SelectBuilder.()->Unit) : Curs
 
 fun DatabaseHolder.insertEntry(file: String = "",title: String, body: String, isPost: Int) {
     val values = ContentValues()
-    values.put("FILE", title)
+    values.put("FILE", file)
     values.put("TITLE", title)
     values.put("BODY", body)
     values.put("IS_POST", isPost)
@@ -100,7 +99,6 @@ fun DatabaseHolder.insertEntry(file: String = "",title: String, body: String, is
 }
 
 fun DatabaseHolder.updateEntry(id: Int, file: String, title: String, body: String, isPost: Int) {
-    val (date, _) = getEntry(id)
     val values = ContentValues()
     values.put("FILE", file)
     values.put("TITLE", title)
@@ -109,10 +107,9 @@ fun DatabaseHolder.updateEntry(id: Int, file: String, title: String, body: Strin
     database.update(DatabaseHolder.ENTRY_TABLE_NAME, values, "_id=?", arrayOf(id.toString()))
 }
 
-fun DatabaseHolder.deleteEntries(ids: List<Long>) {
-    ids.forEach {
-        database.delete(DatabaseHolder.ENTRY_TABLE_NAME, "_id=?", arrayOf(it.toString()))
-    }
+fun DatabaseHolder.deleteEntries(id: Int) {
+
+    database.delete(DatabaseHolder.ENTRY_TABLE_NAME, "_id=?", arrayOf(id.toString()))
 }
 
 inline fun <reified T> Cursor.withClose(body: Cursor.()->T) : T{
@@ -135,6 +132,10 @@ fun DatabaseHolder.getEntryFile(fileName: String): Pair<String, String> {
         where("FILE=?",fileName)
     }.withClose{
         moveToFirst()
-        Pair(this.getString(1), this.getString(3))
+        if(isAfterLast()){
+            Pair("", "")
+        } else {
+            Pair(this.getString(1), this.getString(3))
+        }
     }
 }
