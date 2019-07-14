@@ -23,7 +23,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
-class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogListener, CoroutineScope {
+class MainActivity : AppCompatActivity(), CoroutineScope {
 
     lateinit var job: Job
     override val coroutineContext: CoroutineContext
@@ -50,18 +50,11 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         fun getPreFileNameFromPreferences(prefs: SharedPreferences): String {
             return prefs.getString("pre_fileName", "")!!
         }
-
-        fun getTextFromPreferences(prefs: SharedPreferences): String {
-            return prefs.getString("temporary_text", "")!!
-        }
     }
     val prefs : SharedPreferences by lazy {getAppPreferences(this) }
 
     val pre_fileName : String
         get() = getPreFileNameFromPreferences(prefs)
-
-    val temporaryText : String
-        get() = getTextFromPreferences(prefs)
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         getMenuInflater().inflate(R.menu.main_menu, menu);
@@ -93,7 +86,6 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         }
         // temporary save
         R.id.action_save -> {
-            prefs.edit().putString("temporary_text", editText.text.toString()).commit()
             val file = supportActionBar?.title.toString()
             val title = parserTitle()
             val body = editText.text.toString()
@@ -136,18 +128,6 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
         }
     }
 
-    // Fragment.onAttach() in LoadTextDialogFragment callback
-    override fun onDialogPositiveClick(dialog: DialogFragment) {
-        editText.setText(temporaryText)
-        prefs.edit().remove("temporary_text").commit()
-    }
-
-    // Fragment.onAttach() in LoadTextDialogFragment callback
-    override fun onDialogNegativeClick(dialog: DialogFragment) {
-        editText.setText(preText)
-        prefs.edit().remove("temporary_text").commit()
-    }
-
     var isEdit = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -163,7 +143,7 @@ class MainActivity : AppCompatActivity(),LoadTextDialogFragment.LoadTextDialogLi
             isPost = true
             isEdit = true
         } else if(ispost == 0) {
-            val (file, body)  = database.getEntry(editId)
+            val (_, body)  = database.getEntry(editId)
             supportActionBar?.title = "新規"
             editText.setText(body)
             isEdit = true

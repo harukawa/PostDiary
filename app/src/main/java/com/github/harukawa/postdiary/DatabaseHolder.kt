@@ -90,7 +90,7 @@ fun DatabaseHolder.query(tableName: String, body: SelectBuilder.()->Unit) : Curs
 
 fun DatabaseHolder.insertEntry(file: String = "",title: String, body: String, isPost: Int) {
     val values = ContentValues()
-    values.put("FILE", title)
+    values.put("FILE", file)
     values.put("TITLE", title)
     values.put("BODY", body)
     values.put("IS_POST", isPost)
@@ -99,7 +99,6 @@ fun DatabaseHolder.insertEntry(file: String = "",title: String, body: String, is
 }
 
 fun DatabaseHolder.updateEntry(id: Int, file: String, title: String, body: String, isPost: Int) {
-    val (date, _) = getEntry(id)
     val values = ContentValues()
     values.put("FILE", file)
     values.put("TITLE", title)

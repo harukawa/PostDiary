@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter
 import android.widget.ImageButton
 import android.widget.ListView
 import android.widget.TextView
+import androidx.fragment.app.DialogFragment
 
 class ListActivity : AppCompatActivity() {
 
@@ -131,7 +132,7 @@ class articleListAdapter : ArrayAdapter<Article> {
         }
 
         val Item = getItem(position)
-        viewHolder.title.text = Item.title
+        viewHolder.title.text = Item!!.title
         viewHolder.deleteButton.setOnClickListener { _ ->
             // touch deleteButton
             database.deleteEntries(Item.id)
@@ -140,7 +141,6 @@ class articleListAdapter : ArrayAdapter<Article> {
         }
         return view!!
     }
-
 }
 
 class Article(val id: Int, var title: String) {
