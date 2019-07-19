@@ -10,6 +10,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.github.kittinunf.fuel.coroutines.awaitResponseResult
 import com.github.kittinunf.fuel.coroutines.awaitStringResponseResult
@@ -80,7 +81,8 @@ class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
 
     val apiUrlForCheckTokenValidity : String
         get() {
-            return "https://api.github.com/repos/${getString(R.string.user_name)}/${getString(R.string.repo_name)}/contents/_posts/?ref=master"
+            val settings = PreferenceManager.getDefaultSharedPreferences(this)
+            return "https://api.github.com/repos/${settings.getString("user_name", "")}/${settings.getString("repo_name", "")}/contents/_posts/?ref=master"
         }
 
     fun getAccessToken(code: String) {
