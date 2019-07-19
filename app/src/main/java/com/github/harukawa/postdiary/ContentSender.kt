@@ -56,7 +56,7 @@ class ContentSender(): CoroutineScope {
 
         result.fold(
             { cont -> contParam.add("sha" to cont.sha) },
-            { _ /* err */ -> {} }
+            { _ /* err */ -> Unit }
         )
 
 
