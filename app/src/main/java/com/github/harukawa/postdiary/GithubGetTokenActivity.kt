@@ -10,6 +10,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.github.kittinunf.fuel.coroutines.awaitResponseResult
 import com.github.kittinunf.fuel.coroutines.awaitStringResponseResult
@@ -25,7 +26,7 @@ class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
         get() = Dispatchers.Main + job
 
     companion object {
-        fun getAppPreferences(ctx : Context) = ctx.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        fun getAppPreferences(ctx : Context) = ctx.getSharedPreferences("prefs", Context.MODE_PRIVATE)!!
 
         fun getAccessTokenFromPreferences(prefs: SharedPreferences): String {
             return prefs.getString("access_token", "")!!
@@ -36,7 +37,7 @@ class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
 
     val prefs : SharedPreferences by lazy { getAppPreferences(this) }
 
-    val webView by lazy { findViewById(R.id.webview) as WebView }
+    val webView by lazy { findViewById<WebView>(R.id.webview)!! }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -80,7 +81,8 @@ class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
 
     val apiUrlForCheckTokenValidity : String
         get() {
-            return "https://api.github.com/repos/${getString(R.string.user_name)}/${getString(R.string.repo_name)}/contents/_posts/?ref=master"
+            val settings = PreferenceManager.getDefaultSharedPreferences(this)
+            return "https://api.github.com/repos/${settings.getString("user_name", "")}/${settings.getString("repo_name", "")}/contents/_posts/?ref=master"
         }
 
     fun getAccessToken(code: String) {
@@ -106,7 +108,7 @@ class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
     suspend fun checkTokenValidity(accessToken: String){
         val  (_, response, _) =
             apiUrlForCheckTokenValidity.httpGet()
-                .header("Authorization" to "token ${accessToken}")
+                .header("Authorization" to "token $accessToken")
                 .awaitStringResponseResult(scope=Dispatchers.IO)
         if(response.statusCode == 200) {
             val intent: Intent = Intent()
@@ -133,7 +135,7 @@ class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
                                   val scope: String
     ) {
         class Deserializer : ResponseDeserializable<AuthenticationJson> {
-            override fun deserialize(content: String) = Gson().fromJson(content, AuthenticationJson::class.java)
+            override fun deserialize(content: String) = Gson().fromJson(content, AuthenticationJson::class.java)!!
         }
     }
 

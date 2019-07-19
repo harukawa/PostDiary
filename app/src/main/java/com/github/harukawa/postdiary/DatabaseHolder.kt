@@ -40,7 +40,7 @@ class DatabaseHolder(val context: Context){
         }
     }
     val database by lazy {
-        dbHelper.writableDatabase
+        dbHelper.writableDatabase!!
     }
 
     fun close() {
@@ -132,7 +132,7 @@ fun DatabaseHolder.getEntryFile(fileName: String): Pair<String, String> {
         where("FILE=?",fileName)
     }.withClose{
         moveToFirst()
-        if(isAfterLast()){
+        if(isAfterLast){
             Pair("", "")
         } else {
             Pair(this.getString(1), this.getString(3))
@@ -145,7 +145,7 @@ fun DatabaseHolder.getId(fileName: String): Int {
         where("FILE=?",fileName)
     }.withClose{
         moveToFirst()
-        if(isAfterLast()){
+        if(isAfterLast){
             -1
         } else {
             this.getInt(0)

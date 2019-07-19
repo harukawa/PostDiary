@@ -1,7 +1,6 @@
 package com.github.harukawa.postdiary
 
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
@@ -26,9 +25,9 @@ class ListActivity : AppCompatActivity() {
             by lazy { findViewById<ListView>(R.id.listPosts) }
 
     val adapterPost: ArrayAdapter<Article>
-            by lazy {articleListAdapter(this,0,articlePostsList)}
+            by lazy {ArticleListAdapter(this,0,articlePostsList)}
     val adapterDraft: ArrayAdapter<Article>
-            by lazy {articleListAdapter(this, 0,articleDraftsList)}
+            by lazy {ArticleListAdapter(this, 0,articleDraftsList)}
 
     val SELECT_FIELDS = arrayOf("_id", "TITLE")
 
@@ -116,7 +115,7 @@ class ListActivity : AppCompatActivity() {
 
 data class ViewHolder(val title: TextView, val deleteButton: ImageButton)
 
-class articleListAdapter : ArrayAdapter<Article> {
+class ArticleListAdapter : ArrayAdapter<Article> {
 
     constructor(context : Context, resource : Int, objects: MutableList<Article>) : super(context,resource,objects) {}
 
@@ -132,22 +131,20 @@ class articleListAdapter : ArrayAdapter<Article> {
             view.tag = viewHolder
         }
 
-        val Item = getItem(position)
-        viewHolder.title.text = Item!!.title
+        val item = getItem(position)
+        viewHolder.title.text = item!!.title
         viewHolder.deleteButton.setOnClickListener { _ ->
             // touch deleteButton
             val dialog = AlertDialog.Builder(context)
             dialog.setMessage(R.string.delete_message)
-                .setPositiveButton(R.string.yes,
-                    { _, _ ->
-                        database.deleteEntries(Item.id)
-                        this.remove(Item)
-                        this.notifyDataSetChanged()
-                    })
-                .setNegativeButton(R.string.no,
-                    { _, _ ->
-                        // User cancelled the dialog
-                    })
+                .setPositiveButton(R.string.yes) { _, _ ->
+                    database.deleteEntries(item.id)
+                    this.remove(item)
+                    this.notifyDataSetChanged()
+                }
+                .setNegativeButton(R.string.no) { _, _ ->
+                    // User cancelled the dialog
+                }
             // Create the AlertDialog object and return it
             dialog.create()
             dialog.show()

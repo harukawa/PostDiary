@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     var prePostFileName : String = ""
 
     companion object {
-        fun getAppPreferences(ctx : Context) = ctx.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        fun getAppPreferences(ctx : Context) = ctx.getSharedPreferences("prefs", Context.MODE_PRIVATE)!!
 
         fun getPreFileNameFromPreferences(prefs: SharedPreferences): String {
             return prefs.getString("pre_fileName", "")!!
@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         get() = getPreFileNameFromPreferences(prefs)
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
+        menuInflater.inflate(R.menu.main_menu, menu);
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -141,20 +141,24 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         val editId = intent.getIntExtra("EDIT_ID", -1)
         id = editId
         val ispost = intent.getIntExtra("ISPOST",-1)
-        if(ispost == 1) {
-            val (file, body)  = database.getEntry(editId)
-            supportActionBar?.title = file
-            editText.setText(body)
-            isPost = true
-            isEdit = true
-        } else if(ispost == 0) {
-            val (_, body)  = database.getEntry(editId)
-            supportActionBar?.title = "新規"
-            editText.setText(body)
-            isEdit = true
-        } else {
-            editText.setText(preText)
-            supportActionBar?.title = "新規"
+        when (ispost) {
+            1 -> {
+                val (file, body)  = database.getEntry(editId)
+                supportActionBar?.title = file
+                editText.setText(body)
+                isPost = true
+                isEdit = true
+            }
+            0 -> {
+                val (_, body)  = database.getEntry(editId)
+                supportActionBar?.title = "新規"
+                editText.setText(body)
+                isEdit = true
+            }
+            else -> {
+                editText.setText(preText)
+                supportActionBar?.title = "新規"
+            }
         }
     }
 
@@ -187,7 +191,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         launch {
             try {
                 val settings = PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
-
                 val apiUrl =
                     "https://api.github.com/repos/${settings.getString("user_name", "")}/${settings.getString("repo_name", "")}/contents/_posts/$fileName"
                 val base64Content = Base64.encodeToString(editText.text.toString().toByteArray(),Base64.DEFAULT)//readBase64(fileName)
@@ -221,14 +224,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         val titlePat = "title: \\\"([^\$]+)\\\"".toRegex()
 
         var res = titlePat.find(text)
-        if(res == null) {
+        return if(res == null) {
             showMessage("No title")
-            return "No Title"
+            "No Title"
         } else {
             val titleLine = res.value
-            val title = titleLine.substring(8, titleLine.length - 1)
-
-            return title
+            titleLine.substring(8, titleLine.length - 1)
         }
     }
 
