@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.database.Cursor
 import android.os.Bundle
 import android.util.Base64
 import android.view.Menu
@@ -13,12 +12,11 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.DialogFragment
+import androidx.preference.PreferenceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.coroutines.CoroutineContext
@@ -188,12 +186,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         job = Job()
         launch {
             try {
+                val settings = PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
+
                 val apiUrl =
-                    "https://api.github.com/repos/${getString(R.string.user_name)}/${getString(R.string.repo_name)}/contents/_posts/${fileName}"
+                    "https://api.github.com/repos/${settings.getString("user_name", "")}/${settings.getString("repo_name", "")}/contents/_posts/$fileName"
                 val base64Content = Base64.encodeToString(editText.text.toString().toByteArray(),Base64.DEFAULT)//readBase64(fileName)
-                val ContentSender = ContentSender()
+                val contentSender = ContentSender()
                 val accessToken = prefs.getString("access_token", "")!!
-                val successSend = ContentSender.putContent(apiUrl, "master", fileName, base64Content, accessToken)
+                val successSend = contentSender.putContent(apiUrl, "master", fileName, base64Content, accessToken)
 
                 if(successSend == 1) {
                     if(isEdit) {
@@ -207,7 +207,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                     supportActionBar?.title = getString(R.string.new_title)
                     showMessage("Success Send")
                 } else {
-                    showMessage("Faile Send")
+                    showMessage("Fail Send")
                 }
 
             } catch (e: IllegalArgumentException) {
