@@ -26,7 +26,7 @@ class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
         get() = Dispatchers.Main + job
 
     companion object {
-        fun getAppPreferences(ctx : Context) = ctx.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        fun getAppPreferences(ctx : Context) = ctx.getSharedPreferences("prefs", Context.MODE_PRIVATE)!!
 
         fun getAccessTokenFromPreferences(prefs: SharedPreferences): String {
             return prefs.getString("access_token", "")!!
@@ -37,7 +37,7 @@ class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
 
     val prefs : SharedPreferences by lazy { getAppPreferences(this) }
 
-    val webView by lazy { findViewById(R.id.webview) as WebView }
+    val webView by lazy { findViewById<WebView>(R.id.webview)!! }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -108,7 +108,7 @@ class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
     suspend fun checkTokenValidity(accessToken: String){
         val  (_, response, _) =
             apiUrlForCheckTokenValidity.httpGet()
-                .header("Authorization" to "token ${accessToken}")
+                .header("Authorization" to "token $accessToken")
                 .awaitStringResponseResult(scope=Dispatchers.IO)
         if(response.statusCode == 200) {
             val intent: Intent = Intent()
@@ -135,7 +135,7 @@ class GithubGetTokenActivity : AppCompatActivity() , CoroutineScope {
                                   val scope: String
     ) {
         class Deserializer : ResponseDeserializable<AuthenticationJson> {
-            override fun deserialize(content: String) = Gson().fromJson(content, AuthenticationJson::class.java)
+            override fun deserialize(content: String) = Gson().fromJson(content, AuthenticationJson::class.java)!!
         }
     }
 

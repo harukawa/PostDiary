@@ -19,7 +19,7 @@ class ContentSender(): CoroutineScope {
 
     data class Content(val content : String, val sha : String) {
         class Deserializer : ResponseDeserializable<Content> {
-            override fun deserialize(content: String) = Gson().fromJson(content, Content::class.java)
+            override fun deserialize(content: String) = Gson().fromJson(content, Content::class.java)!!
         }
     }
 
@@ -49,7 +49,7 @@ class ContentSender(): CoroutineScope {
 
     suspend fun sendContentToGithub(apiUrl: String, branchName: String, fname: String, base64Content: String, accessToken:String) : Response {
         val (_, _, result) = "$apiUrl?ref=$branchName".httpGet()
-            .header("Authorization" to "token ${accessToken}")
+            .header("Authorization" to "token $accessToken")
             .awaitResponseResult(ContentSender.Content.Deserializer(), Dispatchers.IO)
 
         val contParam = arrayListOfContentParameter(branchName, fname, base64Content)
@@ -67,7 +67,7 @@ class ContentSender(): CoroutineScope {
 
         val (_, resp, _) = apiUrl.httpPut()
             .body(json)
-            .header("Authorization" to "token ${accessToken}")
+            .header("Authorization" to "token $accessToken")
             .header("Content-Type" to "application/json")
             .awaitStringResponseResult(scope = Dispatchers.IO)
         return resp
