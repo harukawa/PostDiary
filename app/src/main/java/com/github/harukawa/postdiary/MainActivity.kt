@@ -59,6 +59,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         return super.onCreateOptionsMenu(menu)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
+    }
+
     private val editText: EditText by lazy {
         findViewById<TextView>(R.id.editText) as EditText
     }
@@ -122,6 +127,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        job = Job()
+
         val editId = intent.getIntExtra("EDIT_ID", -1)
         id = editId
         val ispost = intent.getIntExtra("ISPOST",-1)
@@ -171,7 +178,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     }
 
     fun postText(fileName: String) {
-        job = Job()
         launch {
             try {
                 val settings = PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
