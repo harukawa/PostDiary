@@ -11,11 +11,6 @@
             android:icon="@android:drawable/ic_menu_save"
             app:showAsAction="always"/>
     <item
-            android:id="@+id/action_edit"
-            android:title="@string/action_edit"
-            android:icon="@android:drawable/ic_menu_edit"
-            app:showAsAction="always"/>
-    <item
             android:id="@+id/action_setting"
             android:title="@string/action_setting"
             android:icon="@android:drawable/ic_menu_manage"
