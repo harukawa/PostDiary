@@ -2,19 +2,26 @@ package com.github.harukawa.postdiary
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.database.Cursor
 import android.os.Bundle
 import android.view.*
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import android.widget.ArrayAdapter
-import android.widget.ImageButton
-import android.widget.ListView
-import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 
 class ListActivity : AppCompatActivity() {
 
     val database by lazy { DatabaseHolder(this) }
+
+    companion object {
+        fun getAppPreferences(ctx : Context) = ctx.getSharedPreferences("prefs", Context.MODE_PRIVATE)!!
+
+        fun getLayoutFromPreferences(prefs: SharedPreferences): String {
+            return prefs.getString("layout", "")!!
+        }
+    }
+    val prefs : SharedPreferences by lazy {getAppPreferences(this) }
 
     var articleDraftsList: MutableList<Article> = mutableListOf()
     var articlePostsList: MutableList<Article> = mutableListOf()
@@ -105,6 +112,22 @@ class ListActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_new -> {
             createEditActivity()
+            true
+        }
+        R.id.action_layout -> {
+            val editText: EditText = EditText(this)
+            editText.setHint(prefs.getString("layout", "default"))
+            val dialog = AlertDialog.Builder(this)
+            dialog.setMessage(R.string.dialog_layout).setView(editText)
+                .setPositiveButton(R.string.yes) { _, _ ->
+                    prefs.edit().putString("layout",editText.text.toString()).commit()
+                }
+                .setNegativeButton(R.string.no) { _, _ ->
+                    // User cancelled the dialog
+                }
+            // Create the AlertDialog object and return it
+            dialog.create()
+            dialog.show()
             true
         }
         else -> {

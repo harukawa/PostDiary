@@ -9,4 +9,5 @@
     <string name="delete_message">削除しますか?</string>
     <string name="yes">はい</string>
     <string name="no">いいえ</string>
+    <string name="dialog_layout">layoutを入力してください</string>
 </resources>

@@ -29,14 +29,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
     val database by lazy { DatabaseHolder(this) }
 
-    val preText = """
-            |---
-            |title: ""
-            |date: ${getTextDate()}
-            |---
-            |
-        """.trimMargin()
-
     fun showMessage(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
 
     var id : Int = -1
@@ -48,11 +40,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         fun getPreFileNameFromPreferences(prefs: SharedPreferences): String {
             return prefs.getString("pre_fileName", "")!!
         }
+
+        fun getLayoutFromPreferences(prefs: SharedPreferences): String {
+            return prefs.getString("layout", "")!!
+        }
     }
     val prefs : SharedPreferences by lazy {getAppPreferences(this) }
 
     val pre_fileName : String
         get() = getPreFileNameFromPreferences(prefs)
+
+    val layout : String
+        get() = getLayoutFromPreferences(prefs)
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu);
@@ -147,7 +146,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                 isEdit = true
             }
             else -> {
-                editText.setText(preText)
+                editText.setText(getText())
                 supportActionBar?.title = "新規"
             }
         }
@@ -196,7 +195,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                         database.insertEntry(fileName, parserTitle(), editText.text.toString(),1)
                     }
                     prePostFileName = fileName
-                    editText.setText(preText)
+                    editText.setText(getText())
                     supportActionBar?.title = getString(R.string.new_title)
                     showMessage("Success Send")
                 } else {
@@ -223,4 +222,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         }
     }
 
+    fun getText():String {
+        val layoutLine = if(layout == "") "" else "\nlayout: ${layout}"
+        return """
+            |---
+            |title: ""
+            |date: ${getTextDate()}${layoutLine}
+            |---
+            |
+        """.trimMargin()
+    }
 }
