@@ -97,6 +97,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                 } else {
                     database.updateEntry(id, file, title, body,0)
                 }
+                showMessage("Save Over Text")
             } else {
                 database.insertEntry(file, title, body, 0)
                 val saveId = database.getId(file)
@@ -107,8 +108,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                     id = saveId
                     isEdit = true
                 }
+                showMessage("Save Text")
             }
-            showMessage("Save Text")
             true
         }
         R.id.action_setting -> {
