@@ -4,8 +4,11 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Build.ID
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.util.Base64
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
@@ -13,6 +16,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
+import kotlinx.android.synthetic.main.list_items.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -61,6 +65,24 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     override fun onDestroy() {
         super.onDestroy()
         job.cancel()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        Log.d("TAG","onSaveInstanceState")
+        outState.run {
+            putBoolean("ID_EDIT_KEY", isEdit)
+            putInt("ID_KEY", id)
+        }
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        Log.d("TAG","onRestoreInstanceState")
+        super.onRestoreInstanceState(savedInstanceState)
+        savedInstanceState?.run {
+            isEdit = getBoolean("ID_EDIT_KEY")
+            id = getInt("ID_KEY")
+        }
     }
 
     private val editText: EditText by lazy {
@@ -120,6 +142,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState != null) {
+            with(savedInstanceState) {
+                // Restore value of members from saved state
+                isEdit = getBoolean("ID_EDIT_KEY")
+                id = getInt("ID_KEY")
+            }
+        }
         setContentView(R.layout.activity_main)
         job = Job()
 
