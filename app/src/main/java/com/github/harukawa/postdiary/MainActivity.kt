@@ -67,8 +67,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         findViewById<TextView>(R.id.editText) as EditText
     }
 
-    var isPost : Boolean = false
-
     val successGetToken = 100 // request Code
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
@@ -92,11 +90,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             val title = parserTitle()
             val body = editText.text.toString()
             if(isEdit) {
-                if(isPost) {
-                    database.updateEntry(id,file,title,body,1)
-                } else {
-                    database.updateEntry(id, file, title, body,0)
-                }
+                database.updateEntry(id,file,title,body)
                 showMessage("Save Over Text")
             } else {
                 database.insertEntry(file, title, body, 0)
@@ -131,13 +125,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
         val editId = intent.getIntExtra("EDIT_ID", -1)
         id = editId
-        val ispost = intent.getIntExtra("ISPOST",-1)
-        when (ispost) {
+        val isPost = intent.getIntExtra("ISPOST",-1)
+        when (isPost) {
             1 -> {
                 val (file, body)  = database.getEntry(editId)
                 supportActionBar?.title = file
                 editText.setText(body)
-                isPost = true
                 isEdit = true
             }
             0 -> {

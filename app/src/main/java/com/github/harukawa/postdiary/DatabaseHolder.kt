@@ -107,6 +107,16 @@ fun DatabaseHolder.updateEntry(id: Int, file: String, title: String, body: Strin
     database.update(DatabaseHolder.ENTRY_TABLE_NAME, values, "_id=?", arrayOf(id.toString()))
 }
 
+@JvmOverloads
+fun DatabaseHolder.updateEntry(id: Int, file: String, title: String, body: String) {
+    val values = ContentValues()
+    values.put("FILE", file)
+    values.put("TITLE", title)
+    values.put("BODY", body)
+    database.update(DatabaseHolder.ENTRY_TABLE_NAME, values, "_id=?", arrayOf(id.toString()))
+}
+
+
 fun DatabaseHolder.deleteEntries(id: Int) {
 
     database.delete(DatabaseHolder.ENTRY_TABLE_NAME, "_id=?", arrayOf(id.toString()))
