@@ -42,7 +42,7 @@ class ListActivity : AppCompatActivity() {
         return database.query(DatabaseHolder.ENTRY_TABLE_NAME) {
             select(*SELECT_FIELDS)
             where("IS_POST=?", isPost.toString())
-            order("_id ASC")
+            order("_id DESC")
         }
     }
 
