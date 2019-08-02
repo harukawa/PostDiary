@@ -25,7 +25,7 @@ class ContentSender(): CoroutineScope {
 
     fun arrayListOfContentParameter(branchName: String, fname: String, base64Content: String) = arrayListOf(
         "path" to fname,
-        "message" to "Put from PostGitHubpages",
+        "message" to "Put from PostDiary",
         "content" to base64Content,
         "branch" to branchName
     )
